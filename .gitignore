@@ -3,3 +3,4 @@ config.xml
 .git/
 queue_marker.txt
 __pycache__/
+requirements.txt
