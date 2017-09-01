@@ -13,7 +13,7 @@ html5lib==0.999
 httplib2==0.9.1
 idna==2.5
 Jinja2==2.8
-louis==2.6.4
+louis
 lxml==3.5.0
 Magic-file-extensions==0.2
 Mako==1.0.3
