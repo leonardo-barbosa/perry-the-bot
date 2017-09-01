@@ -1,0 +1,5 @@
+config.xml
+.idea/
+.git/
+queue_marker.txt
+__pycache__/
