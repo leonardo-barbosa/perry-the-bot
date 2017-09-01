@@ -4,4 +4,3 @@ config.xml
 queue_marker.txt
 __pycache__/
 requirements.txt
-Procfile
