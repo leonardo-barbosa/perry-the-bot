@@ -1,12 +1,10 @@
 from slackclient import SlackClient
-import xml.etree.ElementTree as Et
+import os
 
 
 class SlackConnection:
     def __init__(self):
-        self._configs = Et.parse('config.xml')
-        self._slack = self._configs.find('slack')
-        self._token = self._slack.find('token').text
+        self._token = os.environ.get('SLACK_TOKEN', None)
         self._sc = SlackClient(self._token)
 
     def send_message(self, slack_id, name, ticket):

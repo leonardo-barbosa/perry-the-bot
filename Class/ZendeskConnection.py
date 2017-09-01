@@ -1,19 +1,17 @@
-import xml.etree.ElementTree as Et
 from Class import SlackConnection
 from zenpy import Zenpy
 
 import utilities
 from Dicty import agents
+import os
 
 
 class ZendeskConnection:
     def __init__(self):
-        self._configs = Et.parse('config.xml')
-        self._credentials = self._configs.find('config')
         self._creds = {
-            'email': self._credentials.find('username').text,
-            'password': self._credentials.find('password').text,
-            'subdomain': self._credentials.find('subdomain').text
+            'email': os.environ.get('ZENDESK_USER', None),
+            'password': os.environ.get('ZENDESK_PASS', None),
+            'subdomain': "pagarme"
         }
         self._zenpy_client = Zenpy(**self._creds)
         self._sl = SlackConnection.SlackConnection()
