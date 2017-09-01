@@ -1,5 +1,3 @@
-
-
 def open_file():
     file = open('queue_marker.txt', 'r+')
 
