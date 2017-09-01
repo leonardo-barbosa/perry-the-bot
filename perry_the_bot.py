@@ -8,7 +8,7 @@ sched = BlockingScheduler()
 Perry.assign_tickets()
 
 
-@sched.scheduled_job('interval', minutes=5)
+@sched.scheduled_job('interval', minutes=1)
 def timed_job():
     Perry.assign_tickets()
 
