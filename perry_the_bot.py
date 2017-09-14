@@ -6,7 +6,7 @@ Perry = ZendeskConnection.ZendeskConnection()
 # Go Perry, GO!!!
 sched = BlockingScheduler()
 
-@sched.scheduled_job('interval', minutes=1)
+@sched.scheduled_job('interval', minutes=2)
 def timed_job():
     Perry.assign_tickets()
 
