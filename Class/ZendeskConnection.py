@@ -2,7 +2,7 @@ from zenpy import Zenpy
 
 import SlackConnection
 import utilities
-import agents
+from Dicty import agents
 import os
 
 
