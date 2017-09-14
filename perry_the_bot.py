@@ -1,5 +1,6 @@
-from Class import ZendeskConnection
+import ZendeskConnection
 from apscheduler.schedulers.blocking import BlockingScheduler
+
 Perry = ZendeskConnection.ZendeskConnection()
 
 # Go Perry, GO!!!

@@ -1,10 +1,10 @@
 def open_file():
-    file = open('queue_marker.txt', 'r+')
+    fl = open('queue_marker.txt', 'r+')
 
-    return file
+    return fl
 
 
-def clear_n_write_file(file, marker):
-    file.seek(0)
-    file.truncate()
-    file.write(str(marker))
+def clear_n_write_file(fl, marker):
+    fl.seek(0)
+    fl.truncate()
+    fl.write(str(marker))

@@ -1,8 +1,8 @@
-from Class import SlackConnection
 from zenpy import Zenpy
 
+import SlackConnection
 import utilities
-from Dicty import agents
+import agents
 import os
 
 
@@ -37,15 +37,26 @@ class ZendeskConnection:
 
         return not_assigned_tickets
 
+    def _typing_tickets(self):
+        not_assigned_tickets_with_type = list()
+
+        for ticket in self._get_not_assigned_tickets():
+            if ticket.type in ['problem', 'incident', 'question', 'task']:
+                not_assigned_tickets_with_type.append(ticket)
+            else:
+                self._sl.send_message(ticket)
+
+        return not_assigned_tickets_with_type
+
     def assign_tickets(self):
         sups = self._get_supporters()
         name = ''
 
         # open queue_marker.txt file
-        file = utilities.open_file()
-        marker = int(file.read())
+        fl = utilities.open_file()
+        marker = int(fl.read())
 
-        for ticket in self._get_not_assigned_tickets():
+        for ticket in self._typing_tickets():
             if marker >= len(sups):
                 marker = 0
             try:
@@ -57,7 +68,7 @@ class ZendeskConnection:
                 print(slack_id + " | " + sups[marker].name)
                 marker += 1
                 self._zenpy_client.tickets.update(ticket)
-                self._sl.send_message(slack_id, name, ticket)
-                utilities.clear_n_write_file(file, marker)
+                self._sl.notify_supporter(slack_id, name, ticket)
+                utilities.clear_n_write_file(fl, marker)
             except Exception as e:
                 print(e.args)

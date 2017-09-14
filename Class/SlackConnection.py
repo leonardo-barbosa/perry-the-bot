@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 from slackclient import SlackClient
 import os
 
@@ -7,7 +8,7 @@ class SlackConnection:
         self._token = os.environ.get('SLACK_TOKEN', None)
         self._sc = SlackClient(self._token)
 
-    def send_message(self, slack_id, name, ticket):
+    def send_message(self, ticket):
 
         dic = [
                 {
@@ -57,11 +58,10 @@ class SlackConnection:
                 channel="#realsuporte",
                 attachments=dic
             ))
-            self._notify_supporter(slack_id, name, ticket)
         except Exception as e:
             print(e.args)
 
-    def _notify_supporter(self, slack_id, name, ticket):
+    def notify_supporter(self, slack_id, name, ticket):
         ticket_url = "https://pagarme.zendesk.com/agent/tickets/{0}".format(ticket.id)
 
         try:
