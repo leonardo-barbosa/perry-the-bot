@@ -1,6 +1,6 @@
 from zenpy import Zenpy
+from Class import SlackConnection
 
-import SlackConnection
 import utilities
 from Dicty import agents
 import os
