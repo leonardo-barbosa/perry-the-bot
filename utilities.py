@@ -1,6 +1,5 @@
 def open_file():
     fl = open('queue_marker.txt', 'r+')
-
     return fl
 
 

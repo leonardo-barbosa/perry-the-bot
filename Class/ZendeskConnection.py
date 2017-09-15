@@ -39,12 +39,15 @@ class ZendeskConnection:
 
     def _typing_tickets(self):
         not_assigned_tickets_with_type = list()
-
+        fl = open("../ticket_log.txt", "r+")
+        read_file_string = fl.read()
         for ticket in self._get_not_assigned_tickets():
             if ticket.type in ['problem', 'incident', 'question', 'task']:
                 not_assigned_tickets_with_type.append(ticket)
             else:
-                self._sl.send_message(ticket)
+                if str(ticket.id) not in read_file_string:
+                    self._sl.send_message(ticket)
+                    fl.write("  " + ticket.id)
 
         return not_assigned_tickets_with_type
 

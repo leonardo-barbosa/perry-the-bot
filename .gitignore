@@ -3,3 +3,4 @@ config.xml
 .git/
 __pycache__/
 requirements.txt
+tests/
