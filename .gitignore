@@ -4,3 +4,4 @@ config.xml
 __pycache__/
 requirements.txt
 tests/
+environment.env

@@ -1,8 +1,8 @@
 from zenpy import Zenpy
 from Class import SlackConnection
+from Class import MongoConnection
 
 import utilities
-from Dicty import agents
 import os
 
 
@@ -15,12 +15,13 @@ class ZendeskConnection:
         }
         self._zenpy_client = Zenpy(**self._creds)
         self._sl = SlackConnection.SlackConnection()
+        self._mc = MongoConnection.MongoConnection()
 
     def _get_supporters(self):
         supporter_list = []
 
         for supporter in self._zenpy_client.search(type='user', group_id=21164867):
-            for email in agents.ASSIGN:
+            for email in self._mc.get_active_supporters():
                 if supporter.email in email['email']:
                     try:
                         supporter_list.append(supporter)
@@ -66,7 +67,7 @@ class ZendeskConnection:
                 marker = 0
             try:
                 ticket.assignee = sups[marker]
-                for sup in agents.ASSIGN:
+                for sup in self._mc.get_active_supporters():
                     if sup['email'] == sups[marker].email:
                         slack_id = sup['slack_id']
                         name = sup['name']
