@@ -56,25 +56,29 @@ class ZendeskConnection:
 
     def assign_tickets(self):
         sups = self._get_supporters()
-        name = ''
 
-        # open queue_marker.txt file
-        fl = utilities.open_file()
-        marker = int(fl.read())
+        if sups:
+            name = ''
 
-        for ticket in self._typing_tickets():
-            if marker >= len(sups):
-                marker = 0
-            try:
-                ticket.assignee = sups[marker]
-                for sup in self._mc.get_active_supporters():
-                    if sup['email'] == sups[marker].email:
-                        slack_id = sup['slack_id']
-                        name = sup['name']
-                print(slack_id + " | " + sups[marker].name)
-                marker += 1
-                self._zenpy_client.tickets.update(ticket)
-                self._sl.notify_supporter(slack_id, name, ticket)
-                utilities.clear_n_write_file(fl, marker)
-            except Exception as e:
-                print(e.args)
+            # open queue_marker.txt file
+            fl = utilities.open_file()
+            marker = int(fl.read())
+
+            for ticket in self._typing_tickets():
+                if marker >= len(sups):
+                    marker = 0
+                try:
+                    ticket.assignee = sups[marker]
+                    for sup in self._mc.get_active_supporters():
+                        if sup['email'] == sups[marker].email:
+                            slack_id = sup['slack_id']
+                            name = sup['name']
+                    print(slack_id + " | " + sups[marker].name)
+                    marker += 1
+                    self._zenpy_client.tickets.update(ticket)
+                    self._sl.notify_supporter(slack_id, name, ticket)
+                    utilities.clear_n_write_file(fl, marker)
+                except Exception as e:
+                    print(e.args)
+        elif not sups:
+            print("No active agents to assign tickets")
