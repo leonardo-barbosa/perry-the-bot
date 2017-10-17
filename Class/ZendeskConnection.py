@@ -66,6 +66,8 @@ class ZendeskConnection:
 
             ticket_count.append({'nome': sup.name, 'count': count, 'id': sup.id})
 
+        print('Lista de suporters: \n' + str(ticket_count))
+
         for count in ticket_count:
             if not lowest_ticket_count_sup:
                 lowest_ticket_count_sup = count
