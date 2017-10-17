@@ -65,7 +65,9 @@ class ZendeskConnection:
 
             ticket_count.append({'nome': sup.name, 'count': count, 'id': sup.id})
 
-        return min(ticket_count)
+        lowest_ticket_count_sup = min(ticket_count)
+
+        return lowest_ticket_count_sup
 
     def assign_tickets(self):
         active = self._get_supporters()
