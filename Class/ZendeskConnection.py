@@ -57,6 +57,7 @@ class ZendeskConnection:
     def _get_lowest_ticket_count_suporter(self):
         sups = self._get_supporters()
         ticket_count = []
+        lowest_ticket_count_sup = None
 
         for sup in sups:
             tickets = self._zenpy_client.search(type='ticket', group_id=21164867,
@@ -65,9 +66,12 @@ class ZendeskConnection:
 
             ticket_count.append({'nome': sup.name, 'count': count, 'id': sup.id})
 
-        lowest_ticket_count_sup = min(ticket_count)
-        print(lowest_ticket_count_sup)
-        
+        for count in ticket_count:
+            if not lowest_ticket_count_sup:
+                lowest_ticket_count_sup = count
+            elif count['count'] < lowest_ticket_count_sup['count']:
+                lowest_ticket_count_sup = count
+
         return lowest_ticket_count_sup
 
     def assign_tickets(self):
