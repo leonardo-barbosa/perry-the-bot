@@ -66,7 +66,8 @@ class ZendeskConnection:
             ticket_count.append({'nome': sup.name, 'count': count, 'id': sup.id})
 
         lowest_ticket_count_sup = min(ticket_count)
-
+        print(lowest_ticket_count_sup)
+        
         return lowest_ticket_count_sup
 
     def assign_tickets(self):
