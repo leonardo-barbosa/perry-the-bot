@@ -54,31 +54,32 @@ class ZendeskConnection:
         fl.close()
         return not_assigned_tickets_with_type
 
-    def assign_tickets(self):
+    def _get_lowest_ticket_count_suporter(self):
         sups = self._get_supporters()
+        ticket_count = []
 
-        if sups:
-            name = ''
+        for sup in sups:
+            tickets = self._zenpy_client.search(type='ticket', group_id=21164867,
+                                                     status=['open', 'pending'], assignee_id=sup.id)
+            count = len(tickets)
 
-            # open queue_marker.txt file
-            fl = utilities.open_file()
-            marker = int(fl.read())
+            ticket_count.append({'nome': sup.name, 'count': count, 'id': sup.id})
 
-            for ticket in self._typing_tickets():
-                if marker >= len(sups):
-                    marker = 0
+        return min(ticket_count)
+
+    def assign_tickets(self):
+        for ticket in self._typing_tickets():
+            sup = self._mc.get_suporters_by_zendesk_id(self._get_lowest_ticket_count_suporter()['id'])
+            if sup:
                 try:
-                    ticket.assignee = sups[marker]
-                    for sup in self._mc.get_active_supporters():
-                        if sup['email'] == sups[marker].email:
-                            slack_id = sup['slack_id']
-                            name = sup['name']
-                    print(slack_id + " | " + sups[marker].name)
-                    marker += 1
+                    ticket.assignee_id = sup['zendesk_id']
+                    slack_id = sup['slack_id']
+                    name = sup['name']
+                    print(slack_id + " | " + name)
                     self._zenpy_client.tickets.update(ticket)
                     self._sl.notify_supporter(slack_id, name, ticket)
-                    utilities.clear_n_write_file(fl, marker)
                 except Exception as e:
                     print(e.args)
-        elif not sups:
-            print("No active agents to assign tickets")
+
+            elif not sup:
+                print("No active agents to assign tickets")

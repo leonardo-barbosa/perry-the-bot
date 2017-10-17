@@ -21,3 +21,13 @@ class MongoConnection:
             print(e.args)
 
         return sups
+
+    def get_suporters_by_zendesk_id(self, id):
+        try:
+            collection = self._db.users_records
+            supporters = collection.find()
+            for sup in supporters:
+                if str(sup['zendesk_id']) == str(id):
+                    return sup
+        except Exception as e:
+            print(e.args)
