@@ -1,6 +1,7 @@
 from pymongo import MongoClient
 import os
 
+
 class MongoConnection:
     def __init__(self):
         self._db_url = "mongodb://{0}:{1}@ds149124.mlab.com:49124/perry-bot"\

@@ -68,10 +68,9 @@ class ZendeskConnection:
         return min(ticket_count)
 
     def assign_tickets(self):
-        for ticket in self._typing_tickets():
-            active = self._mc.get_active_supporters
-
-            if active:
+        active = self._get_supporters()
+        if active:
+            for ticket in self._typing_tickets():
                 sup = self._mc.get_suporters_by_zendesk_id(self._get_lowest_ticket_count_suporter()['id'])
                 try:
                     ticket.assignee_id = sup['zendesk_id']
@@ -82,6 +81,5 @@ class ZendeskConnection:
                     self._sl.notify_supporter(slack_id, name, ticket)
                 except Exception as e:
                     print(e.args)
-
-            elif not active:
+        elif not active:
                 print("No active agents to assign tickets")
