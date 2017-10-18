@@ -1,6 +1,7 @@
 from zenpy import Zenpy
 from Class import SlackConnection
 from Class import MongoConnection
+import time
 
 import utilities
 import os
@@ -80,6 +81,7 @@ class ZendeskConnection:
         active = self._get_supporters()
         if active:
             for ticket in self._typing_tickets():
+                time.sleep(25)
                 sup = self._mc.get_suporters_by_zendesk_id(self._get_lowest_ticket_count_suporter()['id'])
                 try:
                     ticket.assignee_id = sup['zendesk_id']
