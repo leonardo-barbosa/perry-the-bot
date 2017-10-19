@@ -83,7 +83,7 @@ class ZendeskConnection:
 
         if active:
             for ticket in tickets:
-                time.sleep(25)
+                time.sleep(40)
                 sup = self._mc.get_suporters_by_zendesk_id(self._get_lowest_ticket_count_suporter()['id'])
                 try:
                     ticket.assignee_id = sup['zendesk_id']
