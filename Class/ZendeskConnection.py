@@ -79,8 +79,10 @@ class ZendeskConnection:
 
     def assign_tickets(self):
         active = self._get_supporters()
+        tickets = self._typing_tickets()
+
         if active:
-            for ticket in self._typing_tickets():
+            for ticket in tickets:
                 time.sleep(25)
                 sup = self._mc.get_suporters_by_zendesk_id(self._get_lowest_ticket_count_suporter()['id'])
                 try:
