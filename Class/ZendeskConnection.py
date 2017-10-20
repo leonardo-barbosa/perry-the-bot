@@ -55,19 +55,17 @@ class ZendeskConnection:
         fl.close()
         return not_assigned_tickets_with_type
 
-    def _get_lowest_ticket_count_suporter(self):
+    def _get_lowest_ticket_count_supporter(self):
         sups = self._get_supporters()
         ticket_count = []
         lowest_ticket_count_sup = None
 
         for sup in sups:
             tickets = self._zenpy_client.search(type='ticket', group_id=21164867,
-                                                     status=['open', 'pending'], assignee_id=sup.id)
+                                                status=['open', 'pending'], assignee_id=sup.id)
             count = len(tickets)
 
             ticket_count.append({'nome': sup.name, 'count': count, 'id': sup.id})
-
-        print('Lista de suporters: \n' + str(ticket_count))
 
         for count in ticket_count:
             if not lowest_ticket_count_sup:
@@ -84,7 +82,7 @@ class ZendeskConnection:
         if active:
             for ticket in tickets:
                 time.sleep(40)
-                sup = self._mc.get_suporters_by_zendesk_id(self._get_lowest_ticket_count_suporter()['id'])
+                sup = self._mc.get_suporters_by_zendesk_id(self._get_lowest_ticket_count_supporter()['id'])
                 try:
                     ticket.assignee_id = sup['zendesk_id']
                     slack_id = sup['slack_id']
@@ -96,3 +94,5 @@ class ZendeskConnection:
                     print(e.args)
         elif not active:
                 print("No active agents to assign tickets")
+
+
