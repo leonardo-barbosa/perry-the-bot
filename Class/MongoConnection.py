@@ -23,7 +23,7 @@ class MongoConnection:
 
         return sups
 
-    def get_suporters_by_zendesk_id(self, id):
+    def get_supporters_by_zendesk_id(self, id):
         try:
             collection = self._db.users_records
             supporters = collection.find()

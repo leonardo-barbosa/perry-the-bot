@@ -11,7 +11,7 @@ class ZendeskConnection:
     def __init__(self):
         self._creds = {
             'email': os.environ.get('ZENDESK_USER', None),
-            'password': os.environ.get('ZENDESK_PASS', None),
+            'token': os.environ.get('ZENDESK_TOKEN', None),
             'subdomain': "pagarme"
         }
         self._zenpy_client = Zenpy(**self._creds)
@@ -55,10 +55,9 @@ class ZendeskConnection:
         fl.close()
         return not_assigned_tickets_with_type
 
-    def _get_lowest_ticket_count_supporter(self):
+    def _get_ticket_count_supporter(self):
         sups = self._get_supporters()
         ticket_count = []
-        lowest_ticket_count_sup = None
 
         for sup in sups:
             tickets = self._zenpy_client.search(type='ticket', group_id=21164867,
@@ -67,32 +66,50 @@ class ZendeskConnection:
 
             ticket_count.append({'nome': sup.name, 'count': count, 'id': sup.id})
 
-        for count in ticket_count:
-            if not lowest_ticket_count_sup:
-                lowest_ticket_count_sup = count
-            elif count['count'] < lowest_ticket_count_sup['count']:
-                lowest_ticket_count_sup = count
+        print('Active supporters: \n' + str(ticket_count))
 
-        return lowest_ticket_count_sup
+        return ticket_count
 
     def assign_tickets(self):
-        active = self._get_supporters()
+        sups = self._get_ticket_count_supporter()
+
+        # Send ticket type message through slack
         tickets = self._typing_tickets()
 
-        if active:
-            for ticket in tickets:
-                time.sleep(40)
-                sup = self._mc.get_suporters_by_zendesk_id(self._get_lowest_ticket_count_supporter()['id'])
-                try:
-                    ticket.assignee_id = sup['zendesk_id']
-                    slack_id = sup['slack_id']
-                    name = sup['name']
-                    print(slack_id + " | " + name)
-                    self._zenpy_client.tickets.update(ticket)
-                    self._sl.notify_supporter(slack_id, name, ticket)
-                except Exception as e:
-                    print(e.args)
-        elif not active:
-                print("No active agents to assign tickets")
+        if sups:
+            if len(tickets) > 0:
+                for ticket in tickets:
+                    #  Get lowest ticket count supporter
+                    lowest_ticket_count_sup = None
+                    for count in sups:
+                        if not lowest_ticket_count_sup:
+                            lowest_ticket_count_sup = count
+                        elif count['count'] < lowest_ticket_count_sup['count']:
+                            lowest_ticket_count_sup = count
+
+                    sup = self._mc.get_supporters_by_zendesk_id(lowest_ticket_count_sup['id'])
+                    try:
+                        # Assign the ticket
+                        ticket.assignee_id = sup['zendesk_id']
+                        slack_id = sup['slack_id']
+                        name = sup['name']
+                        print(slack_id + " | " + name)
+                        self._zenpy_client.tickets.update(ticket)
+
+                        # Notify the supporter on slack
+                        self._sl.notify_supporter(slack_id, name, ticket)
+
+                        # Increase the ticket count for the agent who got it
+                        for agent in sups:
+                            if agent['id'] == lowest_ticket_count_sup['id']:
+                                agent['count'] += 1
+
+                    except Exception as e:
+                        print(e.args)
+            elif len(tickets) <= 0:
+                print("No tickets to assign.")
+        elif not sups:
+            print("No active agents to assign tickets.")
+
 
 
