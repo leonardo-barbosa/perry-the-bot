@@ -1,9 +1,8 @@
 from zenpy import Zenpy
 from Class import SlackConnection
 from Class import MongoConnection
-from Dicty import tags.TAGS as TAGS
-
 import time
+
 import utilities
 import os
 
@@ -18,27 +17,6 @@ class ZendeskConnection:
         self._zenpy_client = Zenpy(**self._creds)
         self._sl = SlackConnection.SlackConnection()
         self._mc = MongoConnection.MongoConnection()
-
-
-    def remove_special_characters( subject ):
-        subject = subject.lower()
-        return unidecode(subject.decode('utf8'))
-
-
-    def tag_ticket(self, ticket):
-        try:
-            new_tags = []
-            for tag in TAGS:
-                for word in TAGS[tag]:
-                    subject = remove_special_characters(ticket.subject)
-                    description = remove_special_characters(ticket.description)
-                    if(((word in subject) or (word in description)) and (tag not in new_tags)):
-                        new_tags.append(tag)
-            ticket.tags.extend(new_tags)
-            self.zenpy_client.tickets.update(ticket)
-        except Exception as e:
-            print(e.args)
-
 
     def _get_supporters(self):
         supporter_list = []
@@ -68,7 +46,6 @@ class ZendeskConnection:
 
         for ticket in self._get_not_assigned_tickets():
             if ticket.type in ['problem', 'incident', 'question', 'task']:
-                tag_ticket(ticket)
                 not_assigned_tickets_with_type.append(ticket)
             else:
                 if str(ticket.id) not in read_file_string:
@@ -134,5 +111,5 @@ class ZendeskConnection:
         elif not sups:
             print("No active agents to assign tickets.")
 
-    def tag_ticket(ticket):
+
 
