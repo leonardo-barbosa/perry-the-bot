@@ -10,4 +10,9 @@ sched = BlockingScheduler()
 def timed_job():
     Perry.assign_tickets()
 
+@sched.scheduled_job('interval', days=1)
+def timed_job():
+    Perry.tag_yesterday_tickets()
+
+
 sched.start()
