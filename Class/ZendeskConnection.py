@@ -4,7 +4,7 @@ from Class import SlackConnection
 from Class import MongoConnection
 from Dicty import tags
 from unidecode import unidecode
-
+from datetime import datetime, timedelta
 import time
 import utilities
 import os
@@ -22,6 +22,14 @@ class ZendeskConnection:
         self._mc = MongoConnection.MongoConnection()
 
 
+    def _generate_comment(self, ticket):
+        ticket_comments = ""
+        for comment in self._zenpy_client.tickets.comments(ticket_id=ticket.id):
+            ticket_comments += " " + str(comment)
+
+        return self._remove_special_characters(ticket_comments)
+
+
     def _remove_special_characters(self, phrase):
         phrase = phrase.lower()
         return unidecode(phrase)
@@ -32,10 +40,11 @@ class ZendeskConnection:
             TAGS = tags.TAGS
             new_tags = []
             subject = self._remove_special_characters(ticket.subject)
+            ticket_comments = self._generate_comment(ticket)
             description = self._remove_special_characters(ticket.description)
             for tag in TAGS:
                 for word in TAGS[tag]:
-                    if(((word in subject) or (word in description)) and (tag not in new_tags)):
+                    if(((word in subject) or (word in description) or (word in ticket_comments)) and (tag not in new_tags)):
                         new_tags.append(tag)
             ticket.tags.extend(new_tags)
             self._zenpy_client.tickets.update(ticket)
@@ -55,6 +64,7 @@ class ZendeskConnection:
                         print(e.args)
         return supporter_list
 
+
     def _get_not_assigned_tickets(self):
         not_assigned_tickets = list()
 
@@ -64,6 +74,7 @@ class ZendeskConnection:
 
         return not_assigned_tickets
 
+
     def _typing_tickets(self):
         not_assigned_tickets_with_type = list()
         fl = open("ticket_log.txt", "r+")
@@ -71,7 +82,6 @@ class ZendeskConnection:
 
         for ticket in self._get_not_assigned_tickets():
             if ticket.type in ['problem', 'incident', 'question', 'task']:
-                self._tag_ticket(ticket)
                 not_assigned_tickets_with_type.append(ticket)
             else:
                 if str(ticket.id) not in read_file_string:
@@ -80,6 +90,17 @@ class ZendeskConnection:
 
         fl.close()
         return not_assigned_tickets_with_type
+
+
+    def _get_yesterday_tickets(self):
+        yesterday = datetime.now() - timedelta(days=2)
+        yesterday_tickets = self._zenpy_client.search(type='ticket', created_after=yesterday.date(), group_id=21164867)
+        support_tickets = [];
+        for ticket in yesterday_tickets:
+            support_tickets.append(ticket)
+
+        return support_tickets
+
 
     def _get_ticket_count_supporter(self):
         sups = self._get_supporters()
@@ -96,12 +117,20 @@ class ZendeskConnection:
 
         return ticket_count
 
+
+    def tag_yesterday_tickets(self):
+        yesterday_tickets = self._get_yesterday_tickets()
+        tagged_tickets = [];
+        for ticket in yesterday_tickets:
+            self._tag_ticket(ticket)
+            tagged_tickets.append(ticket.id)
+        print('Tagged tickets: ' + ''.join( str(tagged_tickets) ) )
+
+
     def assign_tickets(self):
         sups = self._get_ticket_count_supporter()
-
         # Send ticket type message through slack
         tickets = self._typing_tickets()
-
         if sups:
             if len(tickets) > 0:
                 for ticket in tickets:
