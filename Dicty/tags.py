@@ -45,7 +45,7 @@ TAGS = {
         "saque": ["saque", "saques", "transfers"],
         "antecipação": ["anticipation", "bulk_anticipation", "antecipação", "antecipar", "antecipa", "anticipa"],
         "dashboard": ["dash", "dashboard", "board"],
-        "postback": ["postback", "hookshot"],
+        "postback": ["postback", "hookshot", "postbacks"],
         "do_nada": ["funcionar", "parou", "parou de funcionar", "nao mexi"],
         "mundo_físico": ["maquininha", "android", "ios", "emv", "magstripe"],
         "saldo": ["saldo", "balance"],
