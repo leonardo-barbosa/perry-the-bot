@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 import time
 import utilities
 import os
-
+import re
 
 class ZendeskConnection:
     def __init__(self):
@@ -34,6 +34,11 @@ class ZendeskConnection:
         phrase = phrase.lower()
         return unidecode(phrase)
 
+    def _word_in_text(self, word, text):
+        if re.search(r'\b' + word + r'\b', text):
+            return True
+        return False
+
 
     def _tag_ticket(self, ticket):
         try:
@@ -42,9 +47,10 @@ class ZendeskConnection:
             subject = self._remove_special_characters(ticket.subject)
             ticket_comments = self._generate_comment(ticket)
             description = self._remove_special_characters(ticket.description)
+            content = subject + " " + ticket_comments + " " + description + " "
             for tag in TAGS:
                 for word in TAGS[tag]:
-                    if(((word in subject) or (word in description) or (word in ticket_comments)) and (tag not in new_tags)):
+                    if (self._word_in_text(word, content)) and (tag not in new_tags):
                         new_tags.append(tag)
             ticket.tags.extend(new_tags)
             self._zenpy_client.tickets.update(ticket)
