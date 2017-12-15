@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 import time
 import utilities
 import os
-import re
+
 
 class ZendeskConnection:
     def __init__(self):
@@ -34,11 +34,6 @@ class ZendeskConnection:
         phrase = phrase.lower()
         return unidecode(phrase)
 
-    def _word_in_text(self, word, text):
-        if re.search(r'\b' + word + r'\b', text):
-            return True
-        return False
-
 
     def _tag_ticket(self, ticket):
         try:
@@ -47,10 +42,9 @@ class ZendeskConnection:
             subject = self._remove_special_characters(ticket.subject)
             ticket_comments = self._generate_comment(ticket)
             description = self._remove_special_characters(ticket.description)
-            content = subject + " " + ticket_comments + " " + description + " "
             for tag in TAGS:
                 for word in TAGS[tag]:
-                    if (self._word_in_text(word, content)) and (tag not in new_tags):
+                    if(((word in subject) or (word in description) or (word in ticket_comments)) and (tag not in new_tags)):
                         new_tags.append(tag)
             ticket.tags.extend(new_tags)
             self._zenpy_client.tickets.update(ticket)
@@ -80,6 +74,31 @@ class ZendeskConnection:
 
         return not_assigned_tickets
 
+    def _get_assignees_tickets(self, assignees, statuses):
+        assigned_tickets = list()
+
+        for ticket in self._zenpy_client.search(
+            type='ticket', group_id=21164867, assignee_id=assignees,
+            status=statuses
+        ):
+            assigned_tickets.append(ticket)
+
+        return assigned_tickets
+
+    def _get_pending_interaction_tickets(self, tickets, inactiveHours):
+        pending = list()
+
+        for ticket in tickets:
+            metrics = self._zenpy_client.tickets.metrics(ticket.id)
+
+            now = datetime.now()
+            latest_comment_date = datetime.strptime(metrics.latest_comment_added_at, "%Y-%m-%dT%H:%M:%SZ")
+
+            diff_in_hours = utilities.get_dates_diff_in_hours(now, latest_comment_date)
+            if diff_in_hours >= inactiveHours
+                pending.append(ticket)
+
+        return pending
 
     def _typing_tickets(self):
         not_assigned_tickets_with_type = list()
@@ -148,7 +167,7 @@ class ZendeskConnection:
                         elif count['count'] < lowest_ticket_count_sup['count']:
                             lowest_ticket_count_sup = count
 
-                    sup = self._mc.get_supporters_by_zendesk_id(lowest_ticket_count_sup['id'])
+                    sup = self._mc.get_supporter_by_zendesk_id(lowest_ticket_count_sup['id'])
                     try:
                         # Assign the ticket
                         ticket.assignee_id = sup['zendesk_id']
@@ -172,3 +191,17 @@ class ZendeskConnection:
         elif not sups:
             print("No active agents to assign tickets.")
 
+        def notify_pending_interaction_tickets(self):
+            supporters = self._mc.find_supporters({})
+
+            supportersIds = map(lambda supporter: supporter["zendesk_id"], supporters)
+            supportersTickets = self._get_assignees_tickets(supportersIds, ["open", "pending", "hold"])
+
+            minInactiveHours = 24
+            pendingInteractionTickets = self._get_pending_interaction_tickets(supportersTickets, minInactiveHours)
+
+            for ticket in pendingInteractionTickets:
+                mongoSup = [sup for sup in supporters if sup["zendesk_id"] == ticket.assignee_id]
+                mongoSup = mongoSup[0]
+
+                self._sl.notify_pending_interaction_ticket(mongoSup["slack_id"], mongoSup["name"], ticket, minInactiveHours)

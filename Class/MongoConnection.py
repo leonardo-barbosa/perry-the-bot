@@ -23,12 +23,20 @@ class MongoConnection:
 
         return sups
 
-    def get_supporters_by_zendesk_id(self, id):
+    def get_supporter_by_zendesk_id(self, id):
         try:
             collection = self._db.users_records
             supporters = collection.find()
             for sup in supporters:
                 if str(sup['zendesk_id']) == str(id):
                     return sup
+        except Exception as e:
+            print(e.args)
+
+    def find_supporters(self, query):
+        try:
+            collection = self._db_users_records
+            supporters = collection.find(query)
+            return supporters
         except Exception as e:
             print(e.args)

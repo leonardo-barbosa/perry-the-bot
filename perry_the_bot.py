@@ -14,5 +14,8 @@ def timed_job():
 def timed_job():
     Perry.tag_yesterday_tickets()
 
+@sched.scheduled_job('interval', minutes=120)
+def timed_job():
+    Perry.notify_pending_interaction_tickets()
 
 sched.start()
