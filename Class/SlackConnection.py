@@ -2,7 +2,6 @@
 from slackclient import SlackClient
 import os
 
-
 class SlackConnection:
     def __init__(self):
         self._token = os.environ.get('SLACK_TOKEN', None)
@@ -63,13 +62,21 @@ class SlackConnection:
 
     def notify_supporter(self, slack_id, name, ticket):
         ticket_url = "https://pagarme.zendesk.com/agent/tickets/{0}".format(ticket.id)
+        message = "Agente {0}, tem ticket novo pra você! \n {1}".format(name, ticket_url)
+        self.message_channel(slack_id, message)
 
+    def notify_pending_interaction_ticket(self, slack_id, name, ticket, interval):
+        ticket_url = "https://pagarme.zendesk.com/agent/tickets/{0}".format(ticket.id)
+        message = "Agente {0}, o ticket {1} ultrapassou {2} horas sem interação!".format(mongoSup["name"], ticket_url, interval)
+        self.message_channel(slack_id, message)
+
+    def message_channel(self, channel_id, message):
         try:
-            print(self._sc.api_call(
+            print(
+                self._sc.api_call(
                 "chat.postMessage",
-                channel=slack_id,
-                text="Agente {0}, tem ticket novo pra você! \n {1}".format(name, ticket_url)
+                channel=channel_id,
+                text=message
             ))
         except Exception as e:
             print(e.args)
-
