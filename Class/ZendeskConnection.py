@@ -80,6 +80,32 @@ class ZendeskConnection:
 
         return not_assigned_tickets
 
+    def _get_assignees_tickets(self, assignees, statuses):
+        assigned_tickets = list()
+
+        for ticket in self._zenpy_client.search(
+            type='ticket', group_id=21164867, assignee_id=assignees,
+            status=statuses
+        ):
+            assigned_tickets.append(ticket)
+
+        return assigned_tickets
+
+    def _get_pending_interaction_tickets(self, tickets, inactiveHours):
+        pending = list()
+
+        for ticket in tickets:
+            metrics = self._zenpy_client.tickets.metrics(ticket.id)
+
+            now = datetime.now()
+            latest_comment_date = datetime.strptime(metrics.latest_comment_added_at, "%Y-%m-%dT%H:%M:%SZ")
+
+            diff_in_hours = utilities.get_dates_diff_in_hours(now, latest_comment_date)
+
+            if diff_in_hours >= inactiveHours:
+                pending.append(ticket)
+
+        return pending
 
     def _typing_tickets(self):
         not_assigned_tickets_with_type = list()
@@ -148,7 +174,7 @@ class ZendeskConnection:
                         elif count['count'] < lowest_ticket_count_sup['count']:
                             lowest_ticket_count_sup = count
 
-                    sup = self._mc.get_supporters_by_zendesk_id(lowest_ticket_count_sup['id'])
+                    sup = self._mc.get_supporter_by_zendesk_id(lowest_ticket_count_sup['id'])
                     try:
                         # Assign the ticket
                         ticket.assignee_id = sup['zendesk_id']
@@ -172,3 +198,17 @@ class ZendeskConnection:
         elif not sups:
             print("No active agents to assign tickets.")
 
+    def notify_pending_interaction_tickets(self):
+        supporters = list(self._mc.find_supporters())
+
+        supportersIds = map(lambda supporter: supporter["zendesk_id"], supporters)
+        supportersTickets = self._get_assignees_tickets(supportersIds, ["open", "pending", "hold"])
+
+        minInactiveHours = 24
+        pendingInteractionTickets = self._get_pending_interaction_tickets(supportersTickets, minInactiveHours)
+
+        for ticket in pendingInteractionTickets:
+            for supporter in supporters:
+
+                if supporter["zendesk_id"] == str(ticket.assignee_id) and supporter["status"] == "active":
+                    self._sl.notify_pending_interaction_ticket(supporter["slack_id"], supporter["name"], ticket, minInactiveHours)
