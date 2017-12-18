@@ -30,7 +30,7 @@ TAGS = {
         "bizcommerce": ["bizcommerce", "bizcomerce", "biz commerce", "biz comerce"],
         "php": ["php", "phpv2", "phpv3", "v2", "v3", "php v2", "php v3"],
         "java": ["java"],
-        "c#": ["c#", ".net", "aspnet", "vb", "vb.net", "asp.net", "csharp", "visual basic", "visualbasic"],
+        "csharp": ["c#", "dotnet", ".net", "aspnet", "vb", "vb.net", "asp.net", "csharp", "visual basic", "visualbasic"],
         "ruby": ["ruby", "rails"],
         "python": ["python", "pithon", "pyton", "piton"],
         "javascript": ["javascript", "js", "pagarme-js", "node", "nodejs", "node.js"],
