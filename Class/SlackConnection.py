@@ -66,10 +66,16 @@ class SlackConnection:
         message = "Agente {0}, tem ticket novo pra você! \n {1}".format(name, ticket_url)
         self.message_channel(slack_id, message)
 
-    def notify_pending_interaction_ticket(self, slack_id, name, ticket, interval):
-        ticket_url = "https://pagarme.zendesk.com/agent/tickets/{0}".format(ticket.id)
-        message = "Agente {0}, o ticket {1} ultrapassou {2} horas sem interação! \n {3}".format(name, ticket.id, interval, ticket_url)
-        self.message_channel(slack_id, message)
+    def notify_pending_interaction_tickets(self, supporter, tickets, inactiveHours):
+        if len(tickets) == 0 or supporter["status"] == "inactive":
+            return
+
+        ticketsUrl = ""
+        for ticket in tickets:
+            ticketsUrl += "https://pagarme.zendesk.com/agent/tickets/{0}\n".format(ticket.id)
+
+        message = "Agente {0}, os seguintes tickets ultrapassaram {1} horas sem interação:\n{2}".format(supporter["name"], inactiveHours, ticketsUrl)
+        self.message_channel(supporter["slack_id"], message)
 
     def message_channel(self, channel_id, message):
         try:

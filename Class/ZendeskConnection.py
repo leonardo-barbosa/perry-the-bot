@@ -95,10 +95,11 @@ class ZendeskConnection:
         pending = list()
 
         for ticket in tickets:
-            metrics = self._zenpy_client.tickets.metrics(ticket.id)
+            comments = list(self._zenpy_client.tickets.comments(ticket.id))
+            latest_comment = comments[len(comments)-1]
 
             now = datetime.now()
-            latest_comment_date = datetime.strptime(metrics.latest_comment_added_at, "%Y-%m-%dT%H:%M:%SZ")
+            latest_comment_date = datetime.strptime(str(latest_comment.created), "%Y-%m-%d %H:%M:%S+00:00")
 
             diff_in_hours = utilities.get_dates_diff_in_hours(now, latest_comment_date)
 
@@ -207,8 +208,11 @@ class ZendeskConnection:
         minInactiveHours = 24
         pendingInteractionTickets = self._get_pending_interaction_tickets(supportersTickets, minInactiveHours)
 
-        for ticket in pendingInteractionTickets:
-            for supporter in supporters:
+        if len(pendingInteractionTickets) == 0:
+            print("No pending tickets to notify")
+            return
 
-                if supporter["zendesk_id"] == str(ticket.assignee_id) and supporter["status"] == "active":
-                    self._sl.notify_pending_interaction_ticket(supporter["slack_id"], supporter["name"], ticket, minInactiveHours)
+        for supporter in supporters:
+            supporterTickets = [ticket for ticket in pendingInteractionTickets if str(ticket.assignee_id) == supporter["zendesk_id"]]
+
+            self._sl.notify_pending_interaction_tickets(supporter, supporterTickets, minInactiveHours)
