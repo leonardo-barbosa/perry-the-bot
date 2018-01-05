@@ -6,16 +6,8 @@ Perry = ZendeskConnection.ZendeskConnection()
 # Go Perry, GO!!!
 sched = BlockingScheduler()
 
-@sched.scheduled_job('interval', minutes=2)
-def timed_job():
-    Perry.assign_tickets()
-
-@sched.scheduled_job('interval', days=1)
-def timed_job():
-    Perry.tag_yesterday_tickets()
-
-@sched.scheduled_job('interval', minutes=120)
-def timed_job():
-    Perry.notify_pending_interaction_tickets()
+sched.add_job(Perry.assign_tickets(), minutes=2)
+sched.add_job(Perry.tag_yesterday_tickets, hour=22, day_of_week='0-6')
+sched.add_job(Perry.notify_pending_interaction_tickets, minutes=120, day_of_week='mon-fri', hour='7-19')
 
 sched.start()
